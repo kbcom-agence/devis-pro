@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    container_name: test-web
+    ports:
+      - "8080:80"
+    volumes:
+      - ./www:/var/www/html
+    depends_on:
+      - db
+    environment:
+      - DB_HOST=db
+      - DB_PORT=5432
+      - DB_NAME=testdb
+      - DB_USER=testuser
+      - DB_PASSWORD=testpass
+
+  db:
+    image: postgres:15
+    container_name: test-db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_DB=testdb
+      - POSTGRES_USER=testuser
+      - POSTGRES_PASSWORD=testpass
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
