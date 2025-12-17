@@ -5,9 +5,9 @@ RUN apt-get update && apt-get install -y libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql pgsql \
     && rm -rf /var/lib/apt/lists/*
 
-# Fix Apache MPM issue - disable event and worker, enable prefork
-RUN a2dismod mpm_event mpm_worker 2>/dev/null || true \
-    && a2enmod mpm_prefork
+# Fix Apache MPM issue - remove problematic MPM modules and keep only prefork
+RUN rm -f /etc/apache2/mods-enabled/mpm_event.* /etc/apache2/mods-enabled/mpm_worker.* \
+    && a2enmod mpm_prefork || true
 
 # Configure Apache to listen on PORT env variable (Railway requirement)
 RUN echo "Listen \${PORT:-80}" > /etc/apache2/ports.conf && \
