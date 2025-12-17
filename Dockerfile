@@ -1,20 +1,22 @@
-FROM php:8.2-apache
+# Solution Nginx + PHP-FPM (moderne et sans problème MPM)
+FROM php:8.2-fpm
 
-# Install PostgreSQL extension
-RUN apt-get update && apt-get install -y libpq-dev \
+# Install Nginx and PostgreSQL extension
+RUN apt-get update && apt-get install -y \
+    nginx \
+    libpq-dev \
     && docker-php-ext-install pdo pdo_pgsql pgsql \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure Apache to listen on PORT env variable (Railway requirement)
-RUN echo "Listen \${PORT:-80}" > /etc/apache2/ports.conf && \
-    sed -i 's/<VirtualHost \*:80>/<VirtualHost *:${PORT:-80}>/' /etc/apache2/sites-available/000-default.conf
+# Copy Nginx configuration
+COPY nginx.conf /etc/nginx/nginx.conf
 
-# Copy custom Apache startup script (fixes MPM issue)
-COPY start-apache.sh /usr/local/bin/start-apache.sh
-RUN chmod +x /usr/local/bin/start-apache.sh
+# Copy startup script
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 # Expose port
 EXPOSE 80
 
-# Use custom startup script
-CMD ["/usr/local/bin/start-apache.sh"]
+# Start Nginx + PHP-FPM
+CMD ["/start.sh"]
